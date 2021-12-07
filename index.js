@@ -8,7 +8,7 @@ const hasData = obj => {
   if (typeof obj === 'object' && Object.getOwnPropertyNames(obj).filter(prop => prop !== 'length').length === 0) return false
   if (typeof obj !== 'number' && typeof obj !== 'string' && !Array.isArray(obj) && typeof obj !== 'object') return false
   if (typeof obj === 'string' && obj.length === 0) return false
-  
+
   return true
 }
 
