@@ -1,6 +1,17 @@
 const axios = require('axios').default
 const { logger } = require('@vtfk/logger')
 
+const hasData = obj => {
+  if (obj === null || obj === undefined) return false
+  if (typeof obj === 'boolean') return true
+  if (Array.isArray(obj) && obj.length === 0) return false
+  if (typeof obj === 'object' && Object.getOwnPropertyNames(obj).filter(prop => prop !== 'length').length === 0) return false
+  if (typeof obj !== 'number' && typeof obj !== 'string' && !Array.isArray(obj) && typeof obj !== 'object') return false
+  if (typeof obj === 'string' && obj.length === 0) return false
+  
+  return true
+}
+
 const create = async (options, result) => {
   if (!options || (!options.jobId && !options.taskId)) {
     logger('info', ['e18-stats', 'missing data for E18'])
@@ -54,9 +65,13 @@ const create = async (options, result) => {
       message: result.message || ''
     }
     if (result.status === 'failed') {
-      payload.error = result.error
+      if (hasData(result.error)) {
+        payload.error = result.error
+      }
     } else {
-      payload.data = result.data
+      if (hasData(result.data)) {
+        payload.data = result.data
+      }
     }
 
     const { data } = await axios.post(`${URL}/jobs/${jobId}/tasks/${taskId}/operations`, payload, headers)
