@@ -7,7 +7,7 @@ Add `E18_URL` and `E18_KEY` to your environment variables
 ### New task
 
 ```javascript
-const e18 = require('@vtfk/e18')
+const { create } = require('@vtfk/e18')
 const options = {
   "system": "p360",
   "method": "SyncElevmappe",
@@ -19,13 +19,13 @@ const result = {
   error: {} // should be set when status is not complete
   data: {} // should be set when status is completed
 }
-await e18(options, result)
+await create(options, result)
 ```
 
 ### New operation on existing task
 
 ```javascript
-const e18 = require('@vtfk/e18')
+const { create } = require('@vtfk/e18')
 const options = {
   "jobId": "MongoDB_ObjectId",
   "taskId": "MongoDB_ObjectId"
@@ -36,5 +36,5 @@ const result = {
   error: {} // should be set when status is failed
   data: {} // should be set when status is completed
 }
-await e18(options, result)
+await create(options, result)
 ```
