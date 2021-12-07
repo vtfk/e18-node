@@ -1,34 +1,28 @@
-export function addStats(options: StatsOptions): void
+export function create(options: E18Options, result: E18Result): void
 
-interface StatsOperation {
-  status: string
-  message?: string
-  data?: object
-  error?: object
-  createdTimestamp?: string | Date
-  modifiedTimestamp?: string | Date
+enum E18TaskStatus {
+  completed = 'completed',
+  failed = 'failed',
+  suspended = 'suspended',
+  running = 'running',
+  waiting = 'waiting'
 }
 
-interface StatsTask {
-  jobId?: string
-  system: string
-  method: string
-  status?: string
-  retries?: number
-  data?: object
-  dependencyTag?: string
-  dependencies?: object[]
-  operations: StatsOperation[]
-  createdTimestamp: string | Date
-  modifiedTimestamp: string | Date
+enum E18OperationStatus {
+  completed = 'completed',
+  failed = 'failed'
 }
 
-interface StatsOptions {
-  system: string
-  type: string
-  projectId: number
-  status: string
-  tasks: StatsTask[]
-  createdTimestamp: string | Date
-  modifiedTimestamp: string | Date
+interface E18Options {
+  system?: string,
+  method?: string,
+  jobId: string,
+  taskId?: string
+}
+
+interface E18Result {
+  status: E18TaskStatus | E18OperationStatus,
+  message?: string,
+  error?: object,
+  data?: object
 }
