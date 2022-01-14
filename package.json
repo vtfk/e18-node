@@ -21,7 +21,7 @@
   "author": "Rune Moskvil Lyngås <rune.moskvil.lyngaas@vtfk.no> (https://github.com/runely)",
   "license": "MIT",
   "devDependencies": {
-    "jest": "27.3.1",
+    "jest": "27.4.7",
     "standard": "16.0.4"
   },
   "dependencies": {
