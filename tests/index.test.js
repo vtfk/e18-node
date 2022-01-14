@@ -33,4 +33,27 @@ describe('Should return error when', () => {
     }, {})
     expect(result.error).toBe('missing result status')
   })
+
+  test('"E18_SYSTEM" not set in environment and "system" not passed', async () => {
+    const result = await create({
+      jobId: 'something',
+      regarding: 'whatever'
+    }, {
+      status: 'completed',
+      data: { some: 'thing' }
+    })
+    expect(result.message).toBe('missing "system" property')
+  })
+
+  test('"context" not passed and "method" not passed', async () => {
+    const result = await create({
+      jobId: 'something',
+      regarding: 'whatever',
+      system: 'test'
+    }, {
+      status: 'completed',
+      data: { some: 'thing' }
+    })
+    expect(result.message).toBe('missing "method" property')
+  })
 })
