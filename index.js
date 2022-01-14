@@ -18,8 +18,7 @@ const create = async (options, result) => {
     return { error: 'missing data for E18' }
   }
 
-  const URL = process.env.E18_URL
-  const KEY = process.env.E18_KEY
+  const { E18_URL: URL, E18_KEY: KEY, E18_SYSTEM: SYSTEM } = process.env
   let { jobId, taskId, ...task } = options
   const headers = {
     headers: {
@@ -36,12 +35,16 @@ const create = async (options, result) => {
       }
     }
     try {
+      task.system = SYSTEM || task.system
+      if (!task.system) throw new Error('missing "system" property')
+
       const { data } = await axios.post(`${URL}/jobs/${jobId}/tasks`, task, headers)
       taskId = data._id
       logger('info', ['e18-stats', jobId, 'create task', 'successfull', taskId])
     } catch (error) {
-      const { statusCode, message } = error.response.data
-      logger('error', ['e18-stats', jobId, 'create task', 'failed', statusCode || 400, message])
+      const statusCode = error.response?.data?.statusCode || error.response?.status || 400
+      const message = error.response?.data?.message || error.response?.message || error.message
+      logger('error', ['e18-stats', jobId, 'create task', 'failed', statusCode, message])
       return {
         jobId,
         error: 'create task failed',

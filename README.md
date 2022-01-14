@@ -2,7 +2,7 @@
 
 ## Usage
 
-Add `E18_URL` and `E18_KEY` to your environment variables
+Add `E18_URL`, `E18_KEY` and `E18_SYSTEM` to your environment variables
 
 ### New task
 
