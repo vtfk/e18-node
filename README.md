@@ -9,14 +9,12 @@ Add `E18_URL`, `E18_KEY` and `E18_SYSTEM` to your environment variables
 ```javascript
 const { create } = require('@vtfk/e18')
 const options = {
-  "system": "p360",
-  "method": "SyncElevmappe",
   "jobId": "MongoDB_ObjectId"
 }
 const result = {
   status: 'waiting|running|suspended|completed|failed',
   message: 'Finished or whateter|Failed or whatever',
-  error: {} // should be set when status is not complete
+  error: {} // should be set when status is failed
   data: {} // should be set when status is completed
 }
 await create(options, result)

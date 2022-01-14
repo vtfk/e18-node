@@ -1,4 +1,4 @@
-export function create(options: E18Options, result: E18Result): void
+export function create(options: E18Options, result: E18Result, context: object): void
 
 enum E18TaskStatus {
   completed = 'completed',

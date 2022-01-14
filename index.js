@@ -12,7 +12,7 @@ const hasData = obj => {
   return true
 }
 
-const create = async (options, result) => {
+const create = async (options, result, context) => {
   if (!options || (!options.jobId && !options.taskId)) {
     logger('info', ['e18-stats', 'missing data for E18'])
     return { error: 'missing data for E18' }
@@ -37,6 +37,9 @@ const create = async (options, result) => {
     try {
       task.system = SYSTEM || task.system
       if (!task.system) throw new Error('missing "system" property')
+
+      task.method = context?.executionContext?.functionName?.toLowerCase() || task.method
+      if (!task.method) throw new Error('missing "method" property')
 
       const { data } = await axios.post(`${URL}/jobs/${jobId}/tasks`, task, headers)
       taskId = data._id
