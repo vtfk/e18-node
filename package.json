@@ -3,6 +3,9 @@
   "version": "1.1.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": ">12"
+  },
   "scripts": {
     "refresh": "rm -rf node_modules && rm package-lock.json && npm i",
     "test": "standard && jest && npm audit",

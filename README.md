@@ -2,6 +2,8 @@
 
 ## Usage
 
+**Requires Node.js of minimum v14**
+
 Add `E18_URL`, `E18_KEY` and `E18_SYSTEM` to your environment variables
 
 ### New task
