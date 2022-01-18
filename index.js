@@ -68,7 +68,7 @@ const create = async (options, result, context) => {
     }
     const payload = {
       status: result.status,
-      message: result.message || ''
+      message: result.message || result.error?.message || result.error?.body?.message || ''
     }
     if (result.status === 'failed') {
       if (hasData(result.error)) {
