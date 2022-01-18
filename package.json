@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@vtfk/logger": "4.0.1",
-    "axios": "0.24.0"
+    "axios": "0.25.0"
   },
   "standard": {
     "env": [
