@@ -16,8 +16,8 @@ const getInfo = options => {
   if (!hasData(options)) return {}
 
   if (options?.body?.e18) return options.body.e18
-  else if (options?.headers?.e18JobId) {
-    const { e18JobId: jobId, e18TaskId: taskId, e18Task: task } = options?.headers
+  else if (options?.headers?.e18jobid) {
+    const { e18jobid: jobId, e18taskid: taskId, e18task } = options?.headers
     return {
       jobId,
       taskId,
