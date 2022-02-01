@@ -28,7 +28,7 @@ describe('Should return error when', () => {
     })
     expect(result.error).toBe('missing data for E18')
   })
-  
+
   test('"options.body.e18" not passed', async () => {
     const result = await create({
       body: {
