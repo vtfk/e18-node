@@ -17,8 +17,24 @@ describe('Should return error when', () => {
     expect(result.error).toBe('missing data for E18')
   })
 
-  test('"options.jobId" not passed', async () => {
+  test('"options.body" not passed', async () => {
     const result = await create({})
+    expect(result.error).toBe('missing data for E18')
+  })
+
+  test('Empty "options.body" passed', async () => {
+    const result = await create({
+      body: {}
+    })
+    expect(result.error).toBe('missing data for E18')
+  })
+  
+  test('"options.body.e18" not passed', async () => {
+    const result = await create({
+      body: {
+        something: 'okey'
+      }
+    })
     expect(result.error).toBe('missing data for E18')
   })
 
@@ -98,7 +114,8 @@ describe('Gets correct E18 info', () => {
     axios.post = jest.fn().mockResolvedValue({
       statusCode: 200,
       data: {
-        something: 'okey'
+        something: 'okey',
+        _id: 'mockedTaskOperationId'
       }
     })
   })

@@ -24,6 +24,8 @@ const getInfo = options => {
       ...task
     }
   }
+
+  return {}
 }
 
 const create = async (options, result, context) => {
