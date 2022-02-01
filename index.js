@@ -12,14 +12,29 @@ const hasData = obj => {
   return true
 }
 
+const getInfo = options => {
+  if (!hasData(options)) return {}
+
+  if (options?.body?.e18) return options.body.e18
+  else if (options?.headers.e18JobId) {
+    const { e18JobId: jobId, e18TaskId: taskId, e18Task: task } = options?.headers
+    return {
+      jobId,
+      taskId,
+      ...task
+    }
+  }
+}
+
 const create = async (options, result, context) => {
-  if (!options || (!options.jobId && !options.taskId)) {
+  const { E18_URL: URL, E18_KEY: KEY, E18_SYSTEM: SYSTEM } = process.env
+  let { jobId, taskId, ...task } = getInfo(options)
+
+  if (!jobId) {
     logger('info', ['e18-stats', 'missing data for E18'])
     return { error: 'missing data for E18' }
   }
 
-  const { E18_URL: URL, E18_KEY: KEY, E18_SYSTEM: SYSTEM } = process.env
-  let { jobId, taskId, ...task } = options
   const headers = {
     headers: {
       'X-API-KEY': KEY
@@ -86,6 +101,12 @@ const create = async (options, result, context) => {
 
     const { data } = await axios.post(`${URL}/jobs/${jobId}/tasks/${taskId}/operations`, payload, headers)
     logger('info', ['e18-stats', jobId, taskId, 'create operation', 'successfull', data._id])
+    return {
+      jobId,
+      taskId,
+      task,
+      data
+    }
   } catch (error) {
     const { statusCode, message } = error.response.data
     logger('error', ['e18-stats', jobId, taskId, 'create operation', 'failed', statusCode || 400, message])

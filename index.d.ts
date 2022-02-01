@@ -1,4 +1,4 @@
-export function create(options: E18Options, result: E18Result, context: object): void
+export function create(options: RequestObject, result: E18Result, context: object): Promise<void>
 
 enum E18TaskStatus {
   completed = 'completed',
@@ -13,11 +13,31 @@ enum E18OperationStatus {
   failed = 'failed'
 }
 
-interface E18Options {
+interface RequestObject {
+  body?: E18Body,
+  headers?: E18Headers
+}
+
+interface E18BodyOptions {
   system?: string,
   method?: string,
   jobId: string,
   taskId?: string
+}
+
+interface E18HeadersTask {
+  system?: string,
+  method?: string
+}
+
+interface E18Body {
+  e18?: E18BodyOptions
+}
+
+interface E18Headers {
+  e18JobId: string,
+  e18TaskId?: string,
+  e18Task?: E18HeadersTask
 }
 
 interface E18Result {
