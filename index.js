@@ -31,6 +31,7 @@ const getInfo = options => {
 
 const create = async (options, result, context) => {
   const { E18_URL: URL, E18_KEY: KEY, E18_SYSTEM: SYSTEM } = process.env
+  // task will rest of task properties or an empty object
   let { jobId, taskId, ...task } = getInfo(options)
 
   if (!jobId) {
@@ -45,13 +46,6 @@ const create = async (options, result, context) => {
   }
 
   if (jobId && !taskId) {
-    if (!task || Object.getOwnPropertyNames(task).length === 0) {
-      logger('error', ['e18-stats', jobId, 'missing task metadata'])
-      return {
-        jobId,
-        error: 'missing task metadata'
-      }
-    }
     try {
       task.system = SYSTEM || task.system
       if (!task.system) throw new Error('missing "system" property')
@@ -69,6 +63,7 @@ const create = async (options, result, context) => {
       return {
         jobId,
         error: 'create task failed',
+        task,
         statusCode,
         message
       }
