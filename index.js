@@ -62,7 +62,7 @@ const create = async (options, result, context) => {
       logger('error', ['e18-stats', jobId, 'create task', 'failed', statusCode, message])
       return {
         jobId,
-        error: 'create task failed',
+        error: message,
         task,
         statusCode,
         message

@@ -53,7 +53,7 @@ describe('Should return error when', () => {
         }
       }
     })
-    expect(result.error).toBe('missing task metadata')
+    expect(result.error).toBe('missing "system" property')
   })
 
   test('"result" not passed in body', async () => {
