@@ -278,5 +278,17 @@ describe('Gets correct E18 info', () => {
     expect(jobResult.task.system).toBe(options.headers.e18task.system)
     expect(jobResult.task.method).toBe(options.headers.e18task.method)
   })
+
+  test('When no E18 info is found, E18 run is skipped', async () => {
+    const options = {
+      body: {
+        something: 'whatever'
+      },
+      headers: {
+        something: 'whatever'
+      }
+    }
+    const jobResult = await create(options, dataResult)
+    expect(jobResult.error).toBe('missing data for E18')
   })
 })
