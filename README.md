@@ -34,7 +34,7 @@ await create(options, result, context)
 const { create } = require('@vtfk/e18')
 const headers = { // request property from route
   headers: {
-    jobId: 'MongoDB_ObjectId',
+    e18JobId: 'MongoDB_ObjectId',
     e18Task: {
       system: '<system-to-call>', // will be overridden if system has set E18_SYSTEM
       method: 'lookup' // endpoint to call on system
@@ -77,8 +77,8 @@ await create(options, result, context)
 const { create } = require('@vtfk/e18')
 const options = { // request property from route
   headers: {
-    jobId: 'MongoDB_ObjectId',
-    taskId: 'MongoDB_ObjectId'
+    e18JobId: 'MongoDB_ObjectId',
+    e18TaskId: 'MongoDB_ObjectId'
   }
 }
 const result = {
