@@ -17,7 +17,7 @@ describe('Should return error when', () => {
     expect(result.error).toBe('missing data for E18')
   })
 
-  test('"options.body" not passed', async () => {
+  test('"options.body" and "options.headers" not passed', async () => {
     const result = await create({})
     expect(result.error).toBe('missing data for E18')
   })
@@ -38,7 +38,14 @@ describe('Should return error when', () => {
     expect(result.error).toBe('missing data for E18')
   })
 
-  test('"task metadata" not passed', async () => {
+  test('Empty "options.headers" passed', async () => {
+    const result = await create({
+      headers: {}
+    })
+    expect(result.error).toBe('missing data for E18')
+  })
+
+  test('"task metadata" not passed in body', async () => {
     const result = await create({
       body: {
         e18: {
@@ -49,7 +56,7 @@ describe('Should return error when', () => {
     expect(result.error).toBe('missing task metadata')
   })
 
-  test('"result" not passed', async () => {
+  test('"result" not passed in body', async () => {
     const result = await create({
       body: {
         e18: {
@@ -61,7 +68,7 @@ describe('Should return error when', () => {
     expect(result.error).toBe('missing result status')
   })
 
-  test('"result.status" not passed', async () => {
+  test('"result.status" not passed in body', async () => {
     const result = await create({
       body: {
         e18: {
@@ -73,7 +80,7 @@ describe('Should return error when', () => {
     expect(result.error).toBe('missing result status')
   })
 
-  test('"E18_SYSTEM" not set in environment and "system" not passed', async () => {
+  test('"E18_SYSTEM" not set in environment and "system" not passed in body', async () => {
     const result = await create({
       body: {
         e18: {
@@ -88,11 +95,71 @@ describe('Should return error when', () => {
     expect(result.message).toBe('missing "system" property')
   })
 
-  test('"context" not passed and "method" not passed', async () => {
+  test('"context" not passed and "method" not passed in body', async () => {
     const result = await create({
       body: {
         e18: {
           jobId: 'something',
+          regarding: 'whatever',
+          system: 'test'
+        }
+      }
+    }, {
+      status: 'completed',
+      data: { some: 'thing' }
+    })
+    expect(result.message).toBe('missing "method" property')
+  })
+
+  test('"task metadata" not passed in headers', async () => {
+    const result = await create({
+      headers: {
+        e18jobid: 'something'
+      }
+    })
+    expect(result.error).toBe('missing "system" property')
+  })
+
+  test('"result" not passed in headers', async () => {
+    const result = await create({
+      headers: {
+        e18jobid: 'something',
+        e18taskid: 'something'
+      }
+    })
+    expect(result.error).toBe('missing result status')
+  })
+
+  test('"result.status" not passed in headers', async () => {
+    const result = await create({
+      headers: {
+        e18jobid: 'something',
+        e18taskid: 'something'
+      }
+    }, {})
+    expect(result.error).toBe('missing result status')
+  })
+
+  test('"E18_SYSTEM" not set in environment and "system" not passed in headers', async () => {
+    const result = await create({
+      headers: {
+        e18jobid: 'something',
+        e18task: {
+          regarding: 'whatever'
+        }
+      }
+    }, {
+      status: 'completed',
+      data: { some: 'thing' }
+    })
+    expect(result.message).toBe('missing "system" property')
+  })
+
+  test('"context" not passed and "method" not passed in headers', async () => {
+    const result = await create({
+      headers: {
+        e18jobid: 'something',
+        e18task: {
           regarding: 'whatever',
           system: 'test'
         }
