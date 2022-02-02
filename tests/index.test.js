@@ -237,19 +237,19 @@ describe('Gets correct E18 info', () => {
   test('When passed in header', async () => {
     const options = {
       headers: {
-        e18JobId: 'jobHeaders',
-        e18TaskId: 'taskHeaders'
+        e18jobid: 'jobHeaders',
+        e18taskid: 'taskHeaders'
       }
     }
     const jobResult = await create(options, dataResult)
-    expect(jobResult.jobId).toBe(options.headers.e18JobId)
+    expect(jobResult.jobId).toBe(options.headers.e18jobid)
   })
 
   test('When "system" and "method" also passed in headers, "system" should be "process.env.E18_SYSTEM"', async () => {
     const options = {
       headers: {
-        e18JobId: 'jobHeaders',
-        e18Task: {
+        e18jobid: 'jobHeaders',
+        e18task: {
           system: 'testHeaders',
           method: 'runHeaders'
         }
@@ -257,14 +257,14 @@ describe('Gets correct E18 info', () => {
     }
     const jobResult = await create(options, dataResult)
     expect(jobResult.task.system).toBe(process.env.E18_SYSTEM) // environment variable has precedence
-    expect(jobResult.task.method).toBe(options.headers.e18Task.method)
+    expect(jobResult.task.method).toBe(options.headers.e18task.method)
   })
 
   test('When "system" and "method" also passed in headers, "system" should be "system" when "process.env.E18_SYSTEM" doesnt exist', async () => {
     const options = {
       headers: {
-        e18JobId: 'jobHeaders',
-        e18Task: {
+        e18jobid: 'jobHeaders',
+        e18task: {
           system: 'testHeaders',
           method: 'runHeaders'
         }
@@ -275,7 +275,8 @@ describe('Gets correct E18 info', () => {
     delete process.env.E18_SYSTEM
 
     const jobResult = await create(options, dataResult)
-    expect(jobResult.task.system).toBe(options.headers.e18Task.system)
-    expect(jobResult.task.method).toBe(options.headers.e18Task.method)
+    expect(jobResult.task.system).toBe(options.headers.e18task.system)
+    expect(jobResult.task.method).toBe(options.headers.e18task.method)
+  })
   })
 })
