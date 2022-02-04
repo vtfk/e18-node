@@ -86,7 +86,7 @@ const create = async (options, result, context) => {
     if (result.status === 'failed') {
       if (hasData(result.error)) {
         if (typeof result.error === 'object') {
-          payload.error = JSON.parse(JSON.stringify(result.error, Object.getOwnPropertyNames(result.error)))
+          payload.error = JSON.parse(JSON.stringify(result.error))
         } else {
           payload.error = result.error
         }
