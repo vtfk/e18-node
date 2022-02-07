@@ -1,5 +1,5 @@
-const axios = require('axios').default
 const { logger } = require('@vtfk/logger')
+const { createTask, createOperation } = require('./lib/create-stats-info')
 
 const hasData = obj => {
   if (obj === null || obj === undefined) return false
@@ -48,12 +48,6 @@ const create = async (options, result, context) => {
     return { error: 'missing data for E18' }
   }
 
-  const headers = {
-    headers: {
-      'X-API-KEY': KEY
-    }
-  }
-
   if (jobId && !taskId) {
     try {
       task.system = SYSTEM || task.system
@@ -62,7 +56,7 @@ const create = async (options, result, context) => {
       task.method = context?.executionContext?.functionName?.toLowerCase() || task.method
       if (!task.method) throw new Error('missing "method" property')
 
-      const { data } = await axios.post(`${URL}/jobs/${jobId}/tasks`, task, headers)
+      const data = await createTask(jobId, task)
       taskId = data._id
       logger('info', ['e18-stats', jobId, 'create task', 'successfull', taskId])
     } catch (error) {
@@ -106,7 +100,7 @@ const create = async (options, result, context) => {
       }
     }
 
-    const { data } = await axios.post(`${URL}/jobs/${jobId}/tasks/${taskId}/operations`, payload, headers)
+    const data = await createOperation(jobId, taskId, payload)
     logger('info', ['e18-stats', jobId, taskId, 'create operation', 'successfull', data._id])
     return {
       jobId,
