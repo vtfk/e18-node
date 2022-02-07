@@ -1,17 +1,33 @@
 jest.mock('axios')
 
 const axios = require('axios').default
+const dataResult = require('./mock/result')
+const { complete, urlAndKey } = require('./mock/envs')
 const { create } = require('../index')
 
-const dataResult = {
-  status: 'completed',
-  message: 'Finished',
-  data: {
-    something: 'okey'
-  }
-}
-
 describe('Should return error when', () => {
+  beforeEach(() => {
+    process.env = {
+      ...process.env,
+      ...urlAndKey
+    }
+  })
+
+  test('"E18_URL" and "E18_KEY" are missing', async () => {
+    delete process.env.E18_URL
+    delete process.env.E18_KEY
+
+    const result = await create()
+    expect(result.error).toBe('missing url to E18')
+  })
+
+  test('"E18_KEY" are missing', async () => {
+    delete process.env.E18_KEY
+
+    const result = await create()
+    expect(result.error).toBe('missing key to E18')
+  })
+
   test('"options" not passed', async () => {
     const result = await create()
     expect(result.error).toBe('missing data for E18')
@@ -174,9 +190,10 @@ describe('Should return error when', () => {
 
 describe('Gets correct E18 info', () => {
   beforeEach(() => {
-    process.env.E18_URL = 'https://test.dev/api/v1'
-    process.env.E18_KEY = 'adrn'
-    process.env.E18_SYSTEM = 'test'
+    process.env = {
+      ...process.env,
+      ...complete
+    }
 
     axios.post = jest.fn().mockResolvedValue({
       statusCode: 200,

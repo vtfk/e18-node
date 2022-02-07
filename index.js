@@ -31,7 +31,16 @@ const getInfo = options => {
 
 const create = async (options, result, context) => {
   const { E18_URL: URL, E18_KEY: KEY, E18_SYSTEM: SYSTEM } = process.env
-  // task will rest of task properties or an empty object
+  // URL and KEY are required!
+  if (!URL) {
+    logger('info', ['e18-stats', 'missing url to E18'])
+    return { error: 'missing url to E18' }
+  } else if (!KEY) {
+    logger('info', ['e18-stats', 'missing key to E18'])
+    return { error: 'missing key to E18' }
+  }
+
+  // task will be rest of task properties or an empty object
   let { jobId, taskId, ...task } = getInfo(options)
 
   if (!jobId) {
