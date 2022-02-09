@@ -1,16 +1,6 @@
 const { logger } = require('@vtfk/logger')
-const { createTask, createOperation } = require('./lib/create-stats-info')
-
-const hasData = obj => {
-  if (obj === null || obj === undefined) return false
-  if (typeof obj === 'boolean') return true
-  if (Array.isArray(obj) && obj.length === 0) return false
-  if (typeof obj === 'object' && Object.getOwnPropertyNames(obj).filter(prop => prop !== 'length').length === 0) return false
-  if (typeof obj !== 'number' && typeof obj !== 'string' && !Array.isArray(obj) && typeof obj !== 'object') return false
-  if (typeof obj === 'string' && obj.length === 0) return false
-
-  return true
-}
+const { createJob, createTask, createOperation } = require('./lib/create-stats-info')
+const hasData = require('./lib/has-data.js')
 
 const getInfo = options => {
   if (!hasData(options)) return {}
@@ -30,7 +20,7 @@ const getInfo = options => {
 }
 
 const create = async (options, result, context) => {
-  const { E18_URL: URL, E18_KEY: KEY, E18_SYSTEM: SYSTEM } = process.env
+  const { E18_URL: URL, E18_KEY: KEY, E18_SYSTEM: SYSTEM, E18_EMPTY_JOB: EMPTY_JOB = 'true' } = process.env
   // URL and KEY are required!
   if (!URL) {
     logger('info', ['e18-stats', 'missing url to E18'])
@@ -43,19 +33,45 @@ const create = async (options, result, context) => {
   // task will be rest of task properties or an empty object
   let { jobId, taskId, ...task } = getInfo(options)
 
+  task.system = SYSTEM || task.system
+  if (!task.system) {
+    logger('info', ['e18-stats', 'missing "system" property'])
+    return { error: 'missing "system" property' }
+  }
+
+  task.method = context?.executionContext?.functionName?.toLowerCase() || task.method
+  if (!task.method) {
+    logger('info', ['e18-stats', 'missing "method" property'])
+    return { error: 'missing "method" property' }
+  }
+
   if (!jobId) {
-    logger('info', ['e18-stats', 'missing data for E18'])
-    return { error: 'missing data for E18' }
+    if (!EMPTY_JOB || (typeof EMPTY_JOB === 'string' && EMPTY_JOB.toLowerCase().trim() !== 'true')) {
+      logger('info', ['e18-stats', 'missing data for E18'])
+      return { error: 'missing data for E18' }
+    }
+
+    logger('info', ['e18-stats', 'missing data for E18, creating job for statistics purposes'])
+    try {
+      const data = await createJob(task, result)
+      if (data.error) return data
+
+      logger('info', ['e18-stats', 'create job', 'successfull', jobId])
+      return data
+    } catch (error) {
+      const statusCode = error.response?.data?.statusCode || error.response?.status || 400
+      const message = error.response?.data?.message || error.response?.message || error.message
+      logger('error', ['e18-stats', 'create job', 'failed', statusCode, message])
+      return {
+        error: message,
+        statusCode,
+        message
+      }
+    }
   }
 
   if (jobId && !taskId) {
     try {
-      task.system = SYSTEM || task.system
-      if (!task.system) throw new Error('missing "system" property')
-
-      task.method = context?.executionContext?.functionName?.toLowerCase() || task.method
-      if (!task.method) throw new Error('missing "method" property')
-
       const data = await createTask(jobId, task)
       taskId = data._id
       logger('info', ['e18-stats', jobId, 'create task', 'successfull', taskId])
@@ -74,33 +90,8 @@ const create = async (options, result, context) => {
   }
 
   try {
-    if (!result || !result.status) {
-      logger('error', ['e18-stats', jobId, taskId, 'missing result status'])
-      return {
-        jobId,
-        taskId,
-        error: 'missing result status'
-      }
-    }
-    const payload = {
-      status: result.status,
-      message: result.message || result.error?.message || result.error?.body?.message || ''
-    }
-    if (result.status === 'failed') {
-      if (hasData(result.error)) {
-        if (typeof result.error === 'object') {
-          payload.error = JSON.parse(JSON.stringify(result.error))
-        } else {
-          payload.error = result.error
-        }
-      }
-    } else {
-      if (hasData(result.data)) {
-        payload.data = result.data
-      }
-    }
-
-    const data = await createOperation(jobId, taskId, payload)
+    const data = await createOperation(jobId, taskId, result)
+    if (data.error) return data
     logger('info', ['e18-stats', jobId, taskId, 'create operation', 'successfull', data._id])
     return {
       jobId,

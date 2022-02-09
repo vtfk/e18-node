@@ -6,6 +6,8 @@
 
 Add `E18_URL`, `E18_KEY` and `E18_SYSTEM` to your environment variables
 
+If you <u>***don't***</u> want your API to add statistics when `E18` info is missing, set `E18_EMPTY_JOB` as **false** in your environment variables
+
 ### New task
 
 `Passing E18 in body`
@@ -14,9 +16,11 @@ Add `E18_URL`, `E18_KEY` and `E18_SYSTEM` to your environment variables
 const { create } = require('@vtfk/e18')
 const options = { // request property from route
   body: {
-    jobId: 'MongoDB_ObjectId',
-    system: '<system-to-call>', // will be overridden if system has set E18_SYSTEM
-    method: 'lookup' // endpoint to call on system
+    e18: {
+      jobId: 'MongoDB_ObjectId',
+      system: '<system-to-call>', // will be overridden if system has set E18_SYSTEM
+      method: '<route>' // endpoint called on "system". only used if functionName not found
+    }
   }
 }
 const result = {
@@ -32,12 +36,12 @@ await create(options, result, context)
 
 ```javascript
 const { create } = require('@vtfk/e18')
-const headers = { // request property from route
+const options = { // request property from route
   headers: {
-    e18JobId: 'MongoDB_ObjectId',
-    e18Task: {
+    e18jobid: 'MongoDB_ObjectId',
+    e18task: {
       system: '<system-to-call>', // will be overridden if system has set E18_SYSTEM
-      method: 'lookup' // endpoint to call on system
+      method: '<route>' // endpoint called on "system". only used if functionName not found
     }
   }
 }
@@ -47,7 +51,7 @@ const result = {
   error: {} // should be set when status is failed
   data: {} // should be set when status is completed
 }
-await create(headers, result, context)
+await create(options, result, context)
 ```
 
 ### New operation on existing task
@@ -58,8 +62,10 @@ await create(headers, result, context)
 const { create } = require('@vtfk/e18')
 const options = { // request property from route
   body: {
-    jobId: 'MongoDB_ObjectId',
-    taskId: 'MongoDB_ObjectId'
+    e18: {
+      jobId: 'MongoDB_ObjectId',
+      taskId: 'MongoDB_ObjectId'
+    }
   }
 }
 const result = {
@@ -77,8 +83,8 @@ await create(options, result, context)
 const { create } = require('@vtfk/e18')
 const options = { // request property from route
   headers: {
-    e18JobId: 'MongoDB_ObjectId',
-    e18TaskId: 'MongoDB_ObjectId'
+    e18jobid: 'MongoDB_ObjectId',
+    e18taskid: 'MongoDB_ObjectId'
   }
 }
 const result = {

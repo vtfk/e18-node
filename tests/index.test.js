@@ -1,15 +1,15 @@
 jest.mock('axios')
 
 const axios = require('axios').default
-const dataResult = require('./mock/result')
-const { complete, urlAndKey } = require('./mock/envs')
+const { dataResult, context } = require('./mock/result')
+const { complete } = require('./mock/envs')
 const { create } = require('../index')
 
 describe('Should return error when', () => {
   beforeEach(() => {
     process.env = {
       ...process.env,
-      ...urlAndKey
+      ...complete
     }
   })
 
@@ -28,48 +28,23 @@ describe('Should return error when', () => {
     expect(result.error).toBe('missing key to E18')
   })
 
-  test('"options" not passed', async () => {
-    const result = await create()
-    expect(result.error).toBe('missing data for E18')
-  })
+  test('"E18_SYSTEM" not set in environment and "options" not passed', async () => {
+    delete process.env.E18_SYSTEM
 
-  test('"options.body" and "options.headers" not passed', async () => {
     const result = await create({})
-    expect(result.error).toBe('missing data for E18')
-  })
-
-  test('Empty "options.body" passed', async () => {
-    const result = await create({
-      body: {}
-    })
-    expect(result.error).toBe('missing data for E18')
-  })
-
-  test('"options.body.e18" not passed', async () => {
-    const result = await create({
-      body: {
-        something: 'okey'
-      }
-    })
-    expect(result.error).toBe('missing data for E18')
-  })
-
-  test('Empty "options.headers" passed', async () => {
-    const result = await create({
-      headers: {}
-    })
-    expect(result.error).toBe('missing data for E18')
-  })
-
-  test('"task metadata" not passed in body', async () => {
-    const result = await create({
-      body: {
-        e18: {
-          jobId: 'something'
-        }
-      }
-    })
     expect(result.error).toBe('missing "system" property')
+  })
+
+  test('"options" not passed and "context" not passed', async () => {
+    const result = await create({})
+    expect(result.error).toBe('missing "method" property')
+  })
+
+  test('"E18_EMPTY_JOB" set to "false" in environment', async () => {
+    process.env.E18_EMPTY_JOB = 'false'
+
+    const result = await create({}, {}, context)
+    expect(result.error).toBe('missing data for E18')
   })
 
   test('"result" not passed in body', async () => {
@@ -80,7 +55,7 @@ describe('Should return error when', () => {
           taskId: 'something'
         }
       }
-    })
+    }, null, context)
     expect(result.error).toBe('missing result status')
   })
 
@@ -92,48 +67,8 @@ describe('Should return error when', () => {
           taskId: 'something'
         }
       }
-    }, {})
+    }, {}, context)
     expect(result.error).toBe('missing result status')
-  })
-
-  test('"E18_SYSTEM" not set in environment and "system" not passed in body', async () => {
-    const result = await create({
-      body: {
-        e18: {
-          jobId: 'something',
-          regarding: 'whatever'
-        }
-      }
-    }, {
-      status: 'completed',
-      data: { some: 'thing' }
-    })
-    expect(result.message).toBe('missing "system" property')
-  })
-
-  test('"context" not passed and "method" not passed in body', async () => {
-    const result = await create({
-      body: {
-        e18: {
-          jobId: 'something',
-          regarding: 'whatever',
-          system: 'test'
-        }
-      }
-    }, {
-      status: 'completed',
-      data: { some: 'thing' }
-    })
-    expect(result.message).toBe('missing "method" property')
-  })
-
-  test('"task metadata" not passed in headers', async () => {
-    const result = await create({
-      headers: {
-        e18jobid: 'something'
-      }
-    })
-    expect(result.error).toBe('missing "system" property')
   })
 
   test('"result" not passed in headers', async () => {
@@ -142,7 +77,7 @@ describe('Should return error when', () => {
         e18jobid: 'something',
         e18taskid: 'something'
       }
-    })
+    }, null, context)
     expect(result.error).toBe('missing result status')
   })
 
@@ -152,39 +87,8 @@ describe('Should return error when', () => {
         e18jobid: 'something',
         e18taskid: 'something'
       }
-    }, {})
+    }, {}, context)
     expect(result.error).toBe('missing result status')
-  })
-
-  test('"E18_SYSTEM" not set in environment and "system" not passed in headers', async () => {
-    const result = await create({
-      headers: {
-        e18jobid: 'something',
-        e18task: {
-          regarding: 'whatever'
-        }
-      }
-    }, {
-      status: 'completed',
-      data: { some: 'thing' }
-    })
-    expect(result.message).toBe('missing "system" property')
-  })
-
-  test('"context" not passed and "method" not passed in headers', async () => {
-    const result = await create({
-      headers: {
-        e18jobid: 'something',
-        e18task: {
-          regarding: 'whatever',
-          system: 'test'
-        }
-      }
-    }, {
-      status: 'completed',
-      data: { some: 'thing' }
-    })
-    expect(result.message).toBe('missing "method" property')
   })
 })
 
@@ -199,7 +103,7 @@ describe('Gets correct E18 info', () => {
       statusCode: 200,
       data: {
         something: 'okey',
-        _id: 'mockedTaskOperationId'
+        _id: 'job and task created'
       }
     })
   })
@@ -213,11 +117,11 @@ describe('Gets correct E18 info', () => {
         }
       }
     }
-    const jobResult = await create(options, dataResult)
+    const jobResult = await create(options, dataResult, context)
     expect(jobResult.jobId).toBe(options.body.e18.jobId)
   })
 
-  test('When "system" and "method" also passed in body, "system" should be "process.env.E18_SYSTEM"', async () => {
+  test('When "system" and "method" also passed in body, "system" and "method" from body shouldn\'t be used', async () => {
     const options = {
       body: {
         e18: {
@@ -227,18 +131,17 @@ describe('Gets correct E18 info', () => {
         }
       }
     }
-    const jobResult = await create(options, dataResult)
+    const jobResult = await create(options, dataResult, context)
     expect(jobResult.task.system).toBe(process.env.E18_SYSTEM) // environment variable has precedence
-    expect(jobResult.task.method).toBe(options.body.e18.method)
+    expect(jobResult.task.method).toBe(context.executionContext.functionName) // context has precedence
   })
 
-  test('When "system" and "method" also passed in body, "system" should be "system" when "process.env.E18_SYSTEM" doesnt exist', async () => {
+  test('When "system" also passed in body, "system" should be from body when "process.env.E18_SYSTEM" doesnt exist', async () => {
     const options = {
       body: {
         e18: {
           jobId: 'jobBody',
-          system: 'testBody',
-          method: 'runBody'
+          system: 'testBody'
         }
       }
     }
@@ -246,8 +149,23 @@ describe('Gets correct E18 info', () => {
     // remove env variable to use system passed in
     delete process.env.E18_SYSTEM
 
-    const jobResult = await create(options, dataResult)
+    const jobResult = await create(options, dataResult, context)
     expect(jobResult.task.system).toBe(options.body.e18.system)
+    expect(jobResult.task.method).toBe(context.executionContext.functionName) // context has precedence
+  })
+
+  test('When "method" also passed in body, "method" should be from body when "context" doesnt exist', async () => {
+    const options = {
+      body: {
+        e18: {
+          jobId: 'jobBody',
+          method: 'runBody'
+        }
+      }
+    }
+
+    const jobResult = await create(options, dataResult)
+    expect(jobResult.task.system).toBe(process.env.E18_SYSTEM) // environment variable has precedence
     expect(jobResult.task.method).toBe(options.body.e18.method)
   })
 
@@ -258,11 +176,11 @@ describe('Gets correct E18 info', () => {
         e18taskid: 'taskHeaders'
       }
     }
-    const jobResult = await create(options, dataResult)
+    const jobResult = await create(options, dataResult, context)
     expect(jobResult.jobId).toBe(options.headers.e18jobid)
   })
 
-  test('When "system" and "method" also passed in headers, "system" should be "process.env.E18_SYSTEM"', async () => {
+  test('When "system" and "method" also passed in headers, "system" and "method" from headers shouldn\'t be used', async () => {
     const options = {
       headers: {
         e18jobid: 'jobHeaders',
@@ -272,18 +190,17 @@ describe('Gets correct E18 info', () => {
         }
       }
     }
-    const jobResult = await create(options, dataResult)
+    const jobResult = await create(options, dataResult, context)
     expect(jobResult.task.system).toBe(process.env.E18_SYSTEM) // environment variable has precedence
-    expect(jobResult.task.method).toBe(options.headers.e18task.method)
+    expect(jobResult.task.method).toBe(context.executionContext.functionName) // context has precedence
   })
 
-  test('When "system" and "method" also passed in headers, "system" should be "system" when "process.env.E18_SYSTEM" doesnt exist', async () => {
+  test('When "system" also passed in headers, "system" should be from headers when "process.env.E18_SYSTEM" doesnt exist', async () => {
     const options = {
       headers: {
         e18jobid: 'jobHeaders',
         e18task: {
-          system: 'testHeaders',
-          method: 'runHeaders'
+          system: 'testHeaders'
         }
       }
     }
@@ -291,12 +208,27 @@ describe('Gets correct E18 info', () => {
     // remove env variable to use system passed in
     delete process.env.E18_SYSTEM
 
-    const jobResult = await create(options, dataResult)
+    const jobResult = await create(options, dataResult, context)
     expect(jobResult.task.system).toBe(options.headers.e18task.system)
+    expect(jobResult.task.method).toBe(context.executionContext.functionName) // context has precedence
+  })
+
+  test('When "method" also passed in headers, "method" should be from headers when "context" doesnt exist', async () => {
+    const options = {
+      headers: {
+        e18jobid: 'jobHeaders',
+        e18task: {
+          method: 'runHeaders'
+        }
+      }
+    }
+
+    const jobResult = await create(options, dataResult)
+    expect(jobResult.task.system).toBe(process.env.E18_SYSTEM) // environment variable has precedence
     expect(jobResult.task.method).toBe(options.headers.e18task.method)
   })
 
-  test('When no E18 info is found, E18 run is skipped', async () => {
+  test('When no E18 info is found, and "process.env.E18_EMPTY_JOB" doesnt exist, create job and task', async () => {
     const options = {
       body: {
         something: 'whatever'
@@ -305,7 +237,11 @@ describe('Gets correct E18 info', () => {
         something: 'whatever'
       }
     }
-    const jobResult = await create(options, dataResult)
-    expect(jobResult.error).toBe('missing data for E18')
+
+    // remove env variable to allow empty jobs
+    delete process.env.E18_EMPTY_JOB
+
+    const jobResult = await create(options, dataResult, context)
+    expect(jobResult._id).toBe('job and task created')
   })
 })
