@@ -56,6 +56,7 @@ const create = async (options, result, context) => {
       const data = await createJob(task, result)
       if (data.error) return data
 
+      jobId = data._id
       logger('info', ['e18-stats', 'create job', 'successfull', jobId])
       return data
     } catch (error) {
