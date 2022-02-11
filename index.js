@@ -5,11 +5,19 @@ const hasData = require('./lib/has-data.js')
 const getInfo = options => {
   if (!hasData(options)) return {}
 
-  if (options?.body?.e18) return options.body.e18
-  else if (options?.headers?.e18jobid) {
-    const { e18jobid: jobId, e18taskid: taskId, e18task } = options?.headers
+  if (options?.body?.e18) {
+    if (['number', 'string'].includes(typeof options.body.e18.jobProjectId)) {
+      options.body.e18.jobProjectId = Number.parseInt(options.body.e18.jobProjectId)
+    }
+    return options.body.e18
+  } else if (options?.headers?.e18jobid || options?.headers?.e18jobsystem || options?.headers?.e18jobtype || options?.headers?.e18jobprojectid) {
+    const { e18jobsystem: jobSystem, e18jobtype: jobType, e18jobprojectid, e18jobid: jobId, e18taskid: taskId, e18task } = options.headers
+    const jobProjectId = Number.parseInt(e18jobprojectid)
     const task = typeof e18task === 'string' ? JSON.parse(e18task) : e18task
     return {
+      jobSystem,
+      jobType,
+      jobProjectId,
       jobId,
       taskId,
       ...task
@@ -31,7 +39,7 @@ const create = async (options, result, context) => {
   }
 
   // task will be rest of task properties or an empty object
-  let { jobId, taskId, ...task } = getInfo(options)
+  let { jobSystem, jobType, jobProjectId, jobId, taskId, ...task } = getInfo(options)
 
   task.system = SYSTEM || task.system
   if (!task.system) {
@@ -53,7 +61,7 @@ const create = async (options, result, context) => {
 
     logger('info', ['e18-stats', 'missing data for E18, creating job for statistics purposes'])
     try {
-      const data = await createJob(task, result)
+      const data = await createJob(jobSystem, jobType, jobProjectId, task, result)
       if (data.error) return data
 
       jobId = data._id

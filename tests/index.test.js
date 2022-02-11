@@ -1,9 +1,9 @@
-jest.mock('axios')
-
-const axios = require('axios').default
+const axios = require('axios')
 const { dataResult, context } = require('./mock/result')
 const { complete } = require('./mock/envs')
 const { create } = require('../index')
+
+jest.mock('axios')
 
 describe('Should return error when', () => {
   beforeEach(() => {
@@ -92,7 +92,7 @@ describe('Should return error when', () => {
   })
 })
 
-describe('Gets correct E18 info', () => {
+describe('Gets correct E18 info for task and operation', () => {
   beforeEach(() => {
     process.env = {
       ...process.env,
@@ -103,10 +103,12 @@ describe('Gets correct E18 info', () => {
       statusCode: 200,
       data: {
         something: 'okey',
-        _id: 'job and task created'
+        _id: 'task and operation created'
       }
     })
   })
+
+  afterEach(() => jest.clearAllMocks())
 
   test('When passed in body', async () => {
     const options = {
@@ -228,7 +230,46 @@ describe('Gets correct E18 info', () => {
     expect(jobResult.task.method).toBe(options.headers.e18task.method)
   })
 
-  test('When no E18 info is found, and "process.env.E18_EMPTY_JOB" doesnt exist, create job and task', async () => {
+  test('When "system" is passed as a JSON string in headers, "system" should be from "process.env.E18_SYSTEM"', async () => {
+    const options = {
+      headers: {
+        e18jobid: 'jobHeaders',
+        e18task: '{"system":"testHeaders"}'
+      }
+    }
+
+    const jobResult = await create(options, dataResult, context)
+    expect(jobResult.task.system).toBe(process.env.E18_SYSTEM) // environment variable has precedence
+    expect(jobResult.task.method).toBe(context.executionContext.functionName) // context has precedence
+  })
+
+  test('When "method" is passed as a JSON string in headers, "method" should be from "context"', async () => {
+    const options = {
+      headers: {
+        e18jobid: 'jobHeaders',
+        e18task: '{"method":"runHeaders"}'
+      }
+    }
+
+    const jobResult = await create(options, dataResult, context)
+    expect(jobResult.task.system).toBe(process.env.E18_SYSTEM) // environment variable is used
+    expect(jobResult.task.method).toBe(context.executionContext.functionName) // context has precedence
+  })
+})
+
+describe('Gets correct E18 info for job', () => {
+  beforeEach(() => {
+    process.env = {
+      ...process.env,
+      ...complete
+    }
+
+    axios.post.mockImplementation((url, payload, headers) => Promise.resolve({ data: { ...payload, _id: 'job, task and operation created' } }))
+  })
+
+  afterEach(() => jest.clearAllMocks())
+
+  test('When no E18 info is found, and "process.env.E18_EMPTY_JOB" doesn\'t exist, create job, task and operation', async () => {
     const options = {
       body: {
         something: 'whatever'
@@ -242,6 +283,93 @@ describe('Gets correct E18 info', () => {
     delete process.env.E18_EMPTY_JOB
 
     const jobResult = await create(options, dataResult, context)
-    expect(jobResult._id).toBe('job and task created')
+    expect(jobResult.system).toBe(undefined)
+    expect(jobResult.type).toBe(undefined)
+    expect(jobResult.projectId).toBe(undefined)
+    expect(jobResult._id).toBe('job, task and operation created')
+  })
+
+  test('When "jobSystem", "jobType" and "jobProjectId" is found in body, and "process.env.E18_EMPTY_JOB" doesn\'t exist, create job, task and operation', async () => {
+    const jobSystem = 'testJobSystem'
+    const jobType = 'testJobType'
+    const jobProjectId = 0
+    const options = {
+      body: {
+        e18: {
+          jobSystem,
+          jobType,
+          jobProjectId
+        }
+      }
+    }
+
+    // remove env variable to allow empty jobs
+    delete process.env.E18_EMPTY_JOB
+
+    const jobResult = await create(options, dataResult, context)
+    expect(jobResult.system).toBe(jobSystem)
+    expect(jobResult.type).toBe(jobType)
+    expect(jobResult.projectId).toBe(jobProjectId)
+    expect(jobResult._id).toBe('job, task and operation created')
+  })
+
+  test('When "jobProjectId" as a string is found in body, and "process.env.E18_EMPTY_JOB" doesn\'t exist, create job, task and operation', async () => {
+    const jobProjectId = '5'
+    const options = {
+      body: {
+        e18: {
+          jobProjectId
+        }
+      }
+    }
+
+    // remove env variable to allow empty jobs
+    delete process.env.E18_EMPTY_JOB
+
+    const jobResult = await create(options, dataResult, context)
+    expect(jobResult.system).toBe(undefined)
+    expect(jobResult.type).toBe(undefined)
+    expect(jobResult.projectId).toBe(Number.parseInt(jobProjectId))
+    expect(jobResult._id).toBe('job, task and operation created')
+  })
+
+  test('When "e18jobsystem", "e18jobtype" and "e18jobprojectid" is found in headers, and "process.env.E18_EMPTY_JOB" doesn\'t exist, create job, task and operation', async () => {
+    const e18jobsystem = 'testJobSystem'
+    const e18jobtype = 'testJobType'
+    const e18jobprojectid = 0
+    const options = {
+      headers: {
+        e18jobsystem,
+        e18jobtype,
+        e18jobprojectid
+      }
+    }
+
+    // remove env variable to allow empty jobs
+    delete process.env.E18_EMPTY_JOB
+
+    const jobResult = await create(options, dataResult, context)
+    expect(jobResult.system).toBe(e18jobsystem)
+    expect(jobResult.type).toBe(e18jobtype)
+    expect(jobResult.projectId).toBe(e18jobprojectid)
+    expect(jobResult._id).toBe('job, task and operation created')
+  })
+
+  test('When "e18jobprojectid" as a string is found in headers, and "process.env.E18_EMPTY_JOB" doesn\'t exist, create job, task and operation', async () => {
+    const e18jobprojectid = '5'
+    const options = {
+      headers: {
+        e18jobprojectid
+      }
+    }
+
+    // remove env variable to allow empty jobs
+    delete process.env.E18_EMPTY_JOB
+
+    const jobResult = await create(options, dataResult, context)
+    expect(jobResult.system).toBe(undefined)
+    expect(jobResult.type).toBe(undefined)
+    expect(jobResult.projectId).toBe(Number.parseInt(e18jobprojectid))
+    expect(jobResult._id).toBe('job, task and operation created')
   })
 })
