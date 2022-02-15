@@ -90,6 +90,24 @@ describe('Should return error when', () => {
     }, {}, context)
     expect(result.error).toBe('missing result status')
   })
+
+  test('"user-agent" is insomnia', async () => {
+    const result = await create({
+      headers: {
+        'user-agent': 'insomnia/something'
+      }
+    }, {}, context)
+    expect(result.error).toBe('UserAgent excluded')
+  })
+
+  test('"user-agent" is Postman', async () => {
+    const result = await create({
+      headers: {
+        'user-agent': 'PostmanRuntime/something'
+      }
+    }, {}, context)
+    expect(result.error).toBe('UserAgent excluded')
+  })
 })
 
 describe('Gets correct E18 info for task and operation', () => {
@@ -371,5 +389,14 @@ describe('Gets correct E18 info for job', () => {
     expect(jobResult.type).toBe(undefined)
     expect(jobResult.projectId).toBe(Number.parseInt(e18jobprojectid))
     expect(jobResult._id).toBe('job, task and operation created')
+  })
+
+  test('When "user-agent" is not excluded', async () => {
+    const result = await create({
+      headers: {
+        'user-agent': 'axios/something'
+      }
+    }, dataResult, context)
+    expect(result.error).toBe(undefined)
   })
 })

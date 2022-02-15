@@ -1,6 +1,7 @@
 const { logger } = require('@vtfk/logger')
 const { createJob, createTask, createOperation } = require('./lib/create-stats-info')
 const hasData = require('./lib/has-data.js')
+const isExcluded = require('./lib/is-excluded')
 
 const getInfo = options => {
   if (!hasData(options)) return {}
@@ -36,6 +37,13 @@ const create = async (options, result, context) => {
   } else if (!KEY) {
     logger('info', ['e18-stats', 'missing key to E18'])
     return { error: 'missing key to E18' }
+  }
+
+  // is user-agent excluded
+  const isAgentExcluded = isExcluded(options.headers)
+  if (isAgentExcluded) {
+    logger('info', ['user-agent excluded', 'skipping E18'])
+    return { error: 'UserAgent excluded' }
   }
 
   // task will be rest of task properties or an empty object
